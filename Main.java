@@ -13,6 +13,6 @@ public class Main {
         int target = 4;
 
         BigInteger test = new BigInteger("11");
-        System.out.println(NumericalString.decimalDouble("099"));
+        System.out.println(NumericalString.decimalDouble("4321"));
     }
 }
