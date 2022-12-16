@@ -20,13 +20,9 @@ public class NumericalString {
 
     public static String flip(String s) {
         //flip string
-        String ans = "";
-        char ch;
-        for (int i = 0; i < s.length(); i++) {
-            ch = s.charAt(i);
-            ans = ch + ans;
-        }
-        return ans;
+        if(s.length() == 1)
+            return s;
+        return flip(s.substring(1)) + s.charAt(0);
     }
 
     public static String compareSizes(String A, String B) {
@@ -53,6 +49,38 @@ public class NumericalString {
         res += String.valueOf(sum) + reccombine(A.substring(1), B.substring(1), carry);
         return res;
     }
+    public static String remul(String A, String B, int carry) {
+        //we assume the strings are fliped
+        String res = "";
+        if (A.length() == 0) {
+            // in case the msb gave more than 10
+            if (carry > 0 )
+                res += String.valueOf(carry);
+            return res;
+        }
+
+        if(B.length() > 1){
+            //the function will multiply 2, 8, 16,
+            //so we can assume we won't have to deal with the case of 20 or someting
+            // that need to handle  case then to saparate and add zero
+            // 123 * 16  = 123* 10 + 123*6
+            //we will use recombine to finish it up nicely
+            B = B.substring(0,1);
+            res =  remul(A, B, carry);
+            if(!(A.length() == 1 && A.charAt(0)=='0'))
+                A = "0" + A;
+            // len(res) <= len(a) becuse of math
+            res = compareSizes(A,res);
+            res = reccombine(A,res,0);
+            return res;
+        }
+
+        int sum = ((toInt(A.charAt(0)) * toInt(B.charAt(0))) + carry) % 10;
+        carry = ((toInt(A.charAt(0)) * toInt(B.charAt(0))) + carry) / 10;
+        res += String.valueOf(sum) + remul(A.substring(1),B, carry);
+        return res;
+
+    }
 
     //Task 3.2
     public static String decimalIncrement(String s) {
@@ -78,15 +106,16 @@ public class NumericalString {
         return ans;
     }
 
-    public static String recbinary2Decimal(String s, int bit) {
+    public static String recbinary2Decimal(String s, String bit) {
         //bit is 2^x according to the place we at
-        if (s.length() == 1)
-            return String.valueOf(bit * toInt(s.charAt(0)));
-
+        if (s.length() == 1) {
+            String ans = remul(bit, String.valueOf(s.charAt(0)), 0);
+            return ans;
+        }
 
         // calculation for the current lsb
-        String current = flip(String.valueOf(bit * ((s.charAt(0) - '0'))));
-        String tempSum = flip(recbinary2Decimal(s.substring(1), bit * 2));
+        String current = remul(bit, String.valueOf(s.charAt(0)),0);
+        String tempSum = recbinary2Decimal(s.substring(1), remul(bit, "2",0));
 
         if (current.length() > tempSum.length())
             tempSum = compareSizes(current, tempSum);
@@ -94,7 +123,7 @@ public class NumericalString {
             current = compareSizes(tempSum, current);
         String sum = reccombine(current, tempSum, 0);
         //flip again to handle the slip of the recursion
-        return flip(sum);
+        return sum;
     }
 
     //Task 3.4
@@ -102,20 +131,20 @@ public class NumericalString {
         String ans = "";
         if (!legalNumericString(s, 2))
             throw new IllegalArgumentException("s not in base 2");
-        ans = recbinary2Decimal(s, 1);
-        ans = flip(ans);
+
+        ans = recbinary2Decimal(s, "1");
         return ans;
     }
 
-    public static String recOctal2Decimal(String s, int bit) {
+    public static String recOctal2Decimal(String s, String bit) {
         //bit is 2^x according to the place we at
         if (s.length() == 1)
-            return String.valueOf(bit * toInt(s.charAt(0)));
+            return remul(bit, String.valueOf(s.charAt(0)),0);
 
 
         // calculation for the current lsb
-        String current = flip(String.valueOf(bit * ((s.charAt(0) - '0'))));
-        String tempSum = flip(recOctal2Decimal(s.substring(1), bit * 8));
+        String current = flip(remul(bit, String.valueOf(s.charAt(0)),0) );
+        String tempSum = flip(recOctal2Decimal(s.substring(1), remul(bit, "8",0)));
 
         if (current.length() > tempSum.length())
             tempSum = compareSizes(current, tempSum);
@@ -123,7 +152,7 @@ public class NumericalString {
             current = compareSizes(tempSum, current);
         String sum = reccombine(current, tempSum, 0);
         //flip again to handle the slip of the recursion
-        return flip(sum);
+        return sum;
     }
 
     //Task 3.5
@@ -131,12 +160,8 @@ public class NumericalString {
         String ans = "";
         if (!legalNumericString(s, 8))
             throw new IllegalArgumentException("s not in base 8");
-        ans = recOctal2Decimal(s, 1);
-        ans = flip(ans);
+        ans = recOctal2Decimal(s, "1");
         return ans;
     }
 
-    public static void main(String[] args) {
-        System.out.println("Good Luck! :)");
-    }
 }
